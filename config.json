@@ -1,0 +1,12 @@
+{
+    "usb": "/dev/ttyUSB0",
+    "baud": 19200,
+    "deviceName":"it.uniparthenope.meteo.ws1",
+    "delay": 5,
+    "timeout": 60,
+
+    "mqttBroker": "193.205.230.6",
+    "mqttPort": 1883,
+    "mqttUser": "admin",
+    "mqttPass": "password"
+}
