@@ -1,8 +1,8 @@
 {
-    "usb": "/dev/ttyUSB0",
-    "baud": 19200,
+    "folder": "data/",
+    "usbPort": 22222,
     "deviceName":"it.uniparthenope.meteo.ws1",
-    "delay": 5,
+    "delay": 10,
     "timeout": 60,
 
     "mqttBroker": "193.205.230.6",

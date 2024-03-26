@@ -10,10 +10,10 @@ v.1.0
 '''
 
 # Load parameters
-with open('/config/parameters.json', 'r') as param_file:
+with open('parameters.json', 'r') as param_file:
     parameters_data = json.load(param_file)
 
-with open('/config/config.json', 'r') as config_file:
+with open('config.json', 'r') as config_file:
     config_data = json.load(config_file)
 
 def on_publish(client, userdata, mid, reason_code, properties):
@@ -31,12 +31,13 @@ mqttc.on_publish = on_publish
 mqttc.connect(config_data['mqttBroker'], config_data['mqttPort'], config_data['timeout'])
 
 # Connect to USB device
-print(f"Connecting to device {config_data['usb']}. Baudrate: {config_data['baud']}")
-device = VantagePro2.from_serial(config_data['usb'], config_data['baud'])
-
+print(f"Connecting to device tcp:127.0.0.1:{config_data['usbPort']}")
+#device = VantagePro2.from_serial(config_data['usb'], config_data['baud'])
+device = VantagePro2.from_url(f"tcp:127.0.0.1:{config_data['usbPort']}")
 # Send packets
 while True:
     try:
+        device = VantagePro2.from_url(f"tcp:127.0.0.1:{config_data['usbPort']}")
         # Read data from USB device
         data = device.get_current_data()
 
@@ -51,9 +52,14 @@ while True:
         # Publish on MQTT
         ret= mqttc.publish(config_data['deviceName'], json.dumps(packet_data, default=datetime_serializer))
 
+        device.close()
+        
         # Wait a delay
         time.sleep(config_data['delay'])
-
+    except Exception as e:
+        print(e)
+        print("ERROR!")
+    
     except KeyboardInterrupt:
             # Gestisci l'interruzione da tastiera (CTRL+C) per uscire dal loop
             break

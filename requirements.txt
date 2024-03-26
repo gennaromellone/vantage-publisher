@@ -1,2 +1,2 @@
-git+https://github.com/SalemHarrache/PyVantagePro.git
+git+https://github.com/gennaromellone/PyVantagePro.git
 paho-mqtt
