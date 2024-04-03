@@ -1,0 +1,17 @@
+version: '3'
+services:
+  vantage-publisher:
+    image: vantage-publisher
+    volumes:
+      - ./config.json:/config/config.json
+      - ./parameters.json:/config/parameters.json
+    network_mode: host
+    restart: always
+
+  restarter:
+    image: alpine:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      sh -c 'while :; do now=$$(date +"%H%M"); if [ "$now" = "1318" ]; then docker restart vantage-publisher; break; fi; sleep 60; done'
+

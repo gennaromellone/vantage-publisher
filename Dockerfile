@@ -9,13 +9,13 @@ RUN apt-get update && \
 
 WORKDIR /vantage-publisher
 
-COPY PyVantagePro/ PyVantagePro/
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 COPY config.json config.json
 COPY parameters.json parameters.json
-COPY vantage-publisher.py vantage-publisher.py
+#COPY vantage-publisher.py vantage-publisher.py
 
-CMD ["python", "vantage-publisher.py"]
+COPY vantage-publisher-threading.py vantage-publisher.py
+CMD ["python", "-u", "vantage-publisher.py"]
