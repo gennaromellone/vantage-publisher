@@ -4,12 +4,14 @@ import json
 import time
 from datetime import datetime
 import threading
+import os
 '''
 MQTT Publisher made for Davis VantagePro2 weather station.
 
-v.1.0
+v.1.1
 '''
 
+DEVICE_NAME = os.getenv("HOSTNAME")
 # Load parameters
 with open('parameters.json', 'r') as param_file:
     parameters_data = json.load(param_file)
@@ -41,7 +43,7 @@ def readUsb(url):
         return packet_data
 
 def on_publish(client, userdata, mid, reason_code, properties):
-    print(f"{datetime.now()} - Device {config_data['deviceName']} : Data published.")
+    print(f"{datetime.now()} - Device {DEVICE_NAME} : Data published.")
     pass
 
 def datetime_serializer(obj):
@@ -79,7 +81,7 @@ while True:
         packet_data['longitude'] = config_data['deviceLong']
         try:
             # Publish on MQTT
-            ret= mqttc.publish(config_data['deviceName'], json.dumps(packet_data, default=datetime_serializer))
+            ret= mqttc.publish(DEVICE_NAME, json.dumps(packet_data, default=datetime_serializer))
             
             # Wait a delay
             time.sleep(config_data['delay'])
