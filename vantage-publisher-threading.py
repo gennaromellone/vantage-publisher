@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import threading
 import os
+import subprocess
 '''
 MQTT Publisher made for Davis VantagePro2 weather station.
 
@@ -12,6 +13,14 @@ v.1.1
 '''
 
 DEVICE_NAME = os.getenv("HOSTNAME")
+
+def isUSBconnected(vendor_id, product_id):
+    # Execute lsusb and catch output
+    lsusb_output = subprocess.run(['lsusb'], capture_output=True, text=True)
+    
+    # Check for usb device
+    return f"{vendor_id}:{product_id}" in lsusb_output.stdout
+    
 # Load parameters
 with open('parameters.json', 'r') as param_file:
     parameters_data = json.load(param_file)
@@ -66,7 +75,11 @@ while True:
     usbData = [None]
 
     def getData():
-        usbData[0] = readUsb(usbUrl)
+        if isUSBconnected("10c4", "ea61"):
+            usbData[0] = readUsb(usbUrl)
+        else:
+            print("No USB device found! Please reconnect device.")
+            usbData[0] = {}
     
     thread = threading.Thread(target=getData)
     thread.start()
