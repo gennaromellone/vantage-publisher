@@ -1,3 +1,4 @@
+# NOT USED!
 from pyvantagepro import VantagePro2
 import paho.mqtt.client as mqtt
 import json
