@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /home/weather/Desktop/vantage-publisher
+cd $HOME/vantage-publisher
 docker-compose down
 git pull
 make build
