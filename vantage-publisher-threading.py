@@ -11,7 +11,7 @@ MQTT Publisher made for Davis VantagePro2 weather station.
 v.1.1
 '''
 
-DEVICE_NAME = os.getenv("HOSTNAME")
+DEVICE_NAME = "it.uniparthenope.meteo." + os.getenv("HOSTNAME")
 
 # Load parameters
 with open('parameters.json', 'r') as param_file:
