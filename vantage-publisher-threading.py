@@ -85,6 +85,8 @@ while True:
         thread.join()
     else:
         packet_data = usbData[0]
+        packet_data['DatetimeWS'] = packet_data['Datetime']
+        packet_data['Datetime'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         packet_data['latitude'] = config_data['deviceLat']
         packet_data['longitude'] = config_data['deviceLong']
         try:
