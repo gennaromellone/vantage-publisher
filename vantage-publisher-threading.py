@@ -13,12 +13,6 @@ v.1.1
 
 DEVICE_NAME = "it.uniparthenope.meteo." + os.getenv("HOSTNAME")
 
-# Load parameters
-with open('parameters.json', 'r') as param_file:
-    parameters_data = json.load(param_file)
-
-with open('config.json', 'r') as config_file:
-    config_data = json.load(config_file)
 
 def readUsb(url):
     packet_data = {}
@@ -43,13 +37,23 @@ def readUsb(url):
         print("ERROR USB!")
         return packet_data
 
+
 def on_publish(client, userdata, mid, reason_code, properties):
     print(f"{datetime.now()} - Device {DEVICE_NAME} : Data published.")
-    pass
+
 
 def datetime_serializer(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
+
+
+# Load parameters
+with open('parameters.json', 'r') as param_file:
+    parameters_data = json.load(param_file)
+
+with open('config.json', 'r') as config_file:
+    config_data = json.load(config_file)
+
 
 # Creating MQTT connection
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -62,13 +66,16 @@ print(f"Connecting to device tcp:127.0.0.1:{config_data['usbPort']}")
 #device = VantagePro2.from_serial(config_data['usb'], config_data['baud'])
 #device = VantagePro2.from_url(f"tcp:127.0.0.1:{config_data['usbPort']}")
 usbUrl = f"tcp:127.0.0.1:{config_data['usbPort']}"
+
+mqttc.loop_start()
+
 # Send packets
 while True:
     usbData = [None]
 
     def getData():
         usbData[0] = readUsb(usbUrl)
-    
+
     thread = threading.Thread(target=getData)
     thread.start()
     thread.join(timeout=10)
@@ -82,17 +89,17 @@ while True:
         packet_data['longitude'] = config_data['deviceLong']
         try:
             # Publish on MQTT
-            ret= mqttc.publish(DEVICE_NAME, json.dumps(packet_data, default=datetime_serializer))
-            
+            ret = mqttc.publish(DEVICE_NAME, json.dumps(packet_data, default=datetime_serializer))
+
             # Wait a delay
             time.sleep(config_data['delay'])
         except Exception as e:
             print(e)
             print("ERROR MQTT!")
-        
+
         except KeyboardInterrupt:
-                # Gestisci l'interruzione da tastiera (CTRL+C) per uscire dal loop
-                break
+            # Gestisci l'interruzione da tastiera (CTRL+C) per uscire dal loop
+            break
 
 # Disconnect
 mqttc.disconnect()
