@@ -91,6 +91,7 @@ while True:
         packet_data['Datetime'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         packet_data['latitude'] = config_data['deviceLat']
         packet_data['longitude'] = config_data['deviceLong']
+        packet_data['place'] = config_data['devicePlace']
         try:
             # Publish on MQTT
             ret = mqttc.publish(DEVICE_NAME, json.dumps(packet_data, default=datetime_serializer))
