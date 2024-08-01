@@ -8,7 +8,7 @@
     "delay": 10,
     "timeout": 60,
 
-    "mqttBroker": "193.205.230.6",
+    "mqttBroker": "193.205.230.7",
     "mqttPort": 1883,
     "mqttUser": "admin",
     "mqttPass": "password"
