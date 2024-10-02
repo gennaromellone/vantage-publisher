@@ -5,10 +5,15 @@ import time
 from datetime import datetime
 import threading
 import os
+from airlink import airlinkData
+import requests
+
 '''
 MQTT Publisher made for Davis VantagePro2 weather station.
 
-v.1.1
+NEW:
+    Support for AirLink devices
+v.1.2
 '''
 
 DEVICE_NAME = "it.uniparthenope.meteo." + os.getenv("HOSTNAME")
@@ -46,7 +51,6 @@ def datetime_serializer(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
 
-
 # Load parameters
 with open('parameters.json', 'r') as param_file:
     parameters_data = json.load(param_file)
@@ -54,6 +58,17 @@ with open('parameters.json', 'r') as param_file:
 with open('config.json', 'r') as config_file:
     config_data = json.load(config_file)
 
+# Read AirLink ID
+airlink_response = requests.get(f"http://{config_data['mqttBroker']}:8088/get_airlink/{DEVICE_NAME}")
+airlink_id = ""
+if airlink_response.status_code == 200:
+        airlink_json = airlink_response.json()
+        airlink_id = airlink_json["airlinkID"]
+
+elif airlink_response.status_code == 404:
+        print("Error: Instrument not found")
+else:
+        print(f"Errore: {response.status_code}")
 
 # Creating MQTT connection
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -87,11 +102,14 @@ while True:
         packet_data = usbData[0]
         if "Datetime" in packet_data:
              packet_data['DatetimeWS'] = packet_data['Datetime']
-            
         packet_data['Datetime'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-        packet_data['latitude'] = config_data['deviceLat']
-        packet_data['longitude'] = config_data['deviceLong']
-        packet_data['place'] = config_data['devicePlace']
+        #packet_data['latitude'] = config_data['deviceLat']
+        #packet_data['longitude'] = config_data['deviceLong']
+        #packet_data['place'] = config_data['devicePlace']
+        if airlink_id != "":
+                airlink = airlinkData(airlink_id)
+                packet_data.update(airlink) #Merge with airlink data
+
         try:
             # Publish on MQTT
             ret = mqttc.publish(DEVICE_NAME, json.dumps(packet_data, default=datetime_serializer))
@@ -101,7 +119,6 @@ while True:
         except Exception as e:
             print(e)
             print("ERROR MQTT!")
-
         except KeyboardInterrupt:
             # Gestisci l'interruzione da tastiera (CTRL+C) per uscire dal loop
             break
