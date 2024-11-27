@@ -15,6 +15,7 @@ RUN pip install -r requirements.txt
 
 COPY config.json config.json
 COPY parameters.json parameters.json
+COPY airlink.py airlink.py
 #COPY vantage-publisher.py vantage-publisher.py
 
 COPY vantage-publisher-threading.py vantage-publisher.py
