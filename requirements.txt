@@ -1,2 +1,3 @@
 git+https://github.com/gennaromellone/PyVantagePro.git
 paho-mqtt
+requests
