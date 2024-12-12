@@ -8,6 +8,8 @@
     "delay": 10,
     "timeout": 60,
 
+    "pathStorage": "/storage/vantage-pro/",
+
     "mqttBroker": "193.205.230.7",
     "mqttPort": 1883,
     "mqttUser": "admin",

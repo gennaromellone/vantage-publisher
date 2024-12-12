@@ -7,6 +7,7 @@ import threading
 import os
 from airlink import airlinkData
 import requests
+import csv
 
 '''
 MQTT Publisher made for Davis VantagePro2 weather station.
@@ -51,6 +52,54 @@ def datetime_serializer(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
 
+
+def save_data_to_csv(config_data, packet_data):
+    try:
+        # Extract year and month from the 'Datetime' field
+        timestamp = packet_data['Datetime']
+        year = timestamp[:4]
+        month = timestamp[5:7]
+        day = timestamp[8:10]
+
+        # Create year directory if it doesn't exist
+        year_directory = os.path.join(config_data['pathStorage'], year)
+        month_directory = os.path.join(year_directory, month)
+        os.makedirs(month_directory, exist_ok=True)
+
+        # Create or open the monthly CSV file
+        csv_file_path = os.path.join(month_directory, f"{year}-{month:02}-{day:02}.csv")
+        file_exists = os.path.isfile(csv_file_path)
+
+        if file_exists:
+            with open(csv_file_path, mode='r', newline='') as csvfile:
+                reader = csv.DictReader(csvfile)
+                existing_fieldnames = reader.fieldnames
+
+                # Update the header if the new fieldnames have more fields
+                if set(packet_data.keys()) != set(existing_fieldnames):
+                    if len(packet_data.keys()) > len(existing_fieldnames):
+                        temp_rows = list(reader)
+                        with open(csv_file_path, mode='w', newline='') as csvfile_w:
+                            writer = csv.DictWriter(csvfile_w, fieldnames=packet_data.keys())
+                            writer.writeheader()
+                            writer.writerows(temp_rows)
+
+        # Write data to the CSV file
+        with open(csv_file_path, mode='a', newline='') as csvfile:
+            fieldnames = packet_data.keys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            # Write the header only if the file is new
+            if not file_exists:
+                writer.writeheader()
+
+            # Write the data row
+            writer.writerow(packet_data)
+
+    except Exception as e:
+        print(f"Error writing to CSV: {e}")
+
+
 # Load parameters
 with open('parameters.json', 'r') as param_file:
     parameters_data = json.load(param_file)
@@ -58,17 +107,19 @@ with open('parameters.json', 'r') as param_file:
 with open('config.json', 'r') as config_file:
     config_data = json.load(config_file)
 
+# Ensure the root directory exists
+os.makedirs(config_data['pathStorage'], exist_ok=True)
+
 # Read AirLink ID
 airlink_response = requests.get(f"http://{config_data['mqttBroker']}:8088/get_airlink/{DEVICE_NAME}")
 airlink_id = ""
 if airlink_response.status_code == 200:
-        airlink_json = airlink_response.json()
-        airlink_id = airlink_json["airlinkID"]
-
+    airlink_json = airlink_response.json()
+    airlink_id = airlink_json["airlinkID"]
 elif airlink_response.status_code == 404:
-        print("Error: Instrument not found")
+    print("Error: Instrument not found")
 else:
-        print(f"Errore: {response.status_code}")
+    print(f"Errore: {response.status_code}")
 
 # Creating MQTT connection
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -101,14 +152,16 @@ while True:
     else:
         packet_data = usbData[0]
         if "Datetime" in packet_data:
-             packet_data['DatetimeWS'] = packet_data['Datetime']
+            packet_data['DatetimeWS'] = packet_data['Datetime']
         packet_data['Datetime'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         #packet_data['latitude'] = config_data['deviceLat']
         #packet_data['longitude'] = config_data['deviceLong']
         #packet_data['place'] = config_data['devicePlace']
         if airlink_id != "":
-                airlink = airlinkData(airlink_id)
-                packet_data.update(airlink) #Merge with airlink data
+            airlink = airlinkData(airlink_id)
+            packet_data.update(airlink) #Merge with airlink data
+        
+        save_data_to_csv(config_data, packet_data)
 
         try:
             # Publish on MQTT
