@@ -58,8 +58,8 @@ def save_data_to_csv(config_data, packet_data):
         # Extract year and month from the 'Datetime' field
         timestamp = packet_data['Datetime']
         year = timestamp[:4]
-        month = timestamp[5:7]
-        day = timestamp[8:10]
+        month = timestamp[5:7].zfill(2)
+        day = timestamp[8:10].zfill(2)
 
         # Create year directory if it doesn't exist
         year_directory = os.path.join(config_data['pathStorage'], year)
@@ -67,7 +67,7 @@ def save_data_to_csv(config_data, packet_data):
         os.makedirs(month_directory, exist_ok=True)
 
         # Create or open the monthly CSV file
-        csv_file_path = os.path.join(month_directory, f"{year}-{month:02}-{day:02}.csv")
+        csv_file_path = os.path.join(month_directory, f"{year}-{month}-{day}.csv")
         file_exists = os.path.isfile(csv_file_path)
 
         if file_exists:

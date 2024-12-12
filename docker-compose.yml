@@ -5,6 +5,7 @@ services:
     volumes:
       - ./config.json:/config/config.json
       - ./parameters.json:/config/parameters.json
+      - /storage:/storage/
     network_mode: host
     restart: always
 
