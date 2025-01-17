@@ -36,6 +36,7 @@ def airlinkData(uuid):
 				data['dew_point'] = float(data['dew_point'])
 				data['pm_10'] = float(data['pm_10'])
 				data['pm_2p5'] = float(data['pm_2p5'])
+				data['wet_bulb'] = float(data['wet_bulb'])
 	except Exception as e:
 		print(e)
 
