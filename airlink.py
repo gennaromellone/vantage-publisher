@@ -1,43 +1,44 @@
 import requests
 
 def airlinkData(uuid):
-	url = f"https://api.weatherlink.com/v2/current/{uuid}?api-key=b3xchodamrmfri3qd2zguel7nifkndh9"
+    url = f"https://api.weatherlink.com/v2/current/{uuid}?api-key=b3xchodamrmfri3qd2zguel7nifkndh9"
+    headers = {
+        'X-Api-Secret': 'zl4kshrwl7t0xl8z2u07ewptbmjfcdg9'
+    }
 
-	headers = {
-  		'X-Api-Secret': 'zl4kshrwl7t0xl8z2u07ewptbmjfcdg9'
-		}
+    data = {}
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        res = response.json()
+    except requests.RequestException as e:
+        print(f"Errore sulla richiesta dati Airlink: {e}")
+        return data
+    except ValueError as e:
+        print(f"Errore nel parsing JSON: {e}")
+        return data
 
+    sensors = res.get("sensors", [])
 
-	response = requests.request("GET", url, headers=headers)
-	res = response.json()
-	data = {}
-	try:
-		#print(len(res["sensors"]))
-		for sensor in res["sensors"]:
-			#print(sensor)
-			if "hum" in sensor["data"][0]:
-				data = sensor["data"][0]
+    for sensor in sensors:
+        if sensor.get("data") and "hum" in sensor["data"][0]:
+            raw_data = sensor["data"][0]
 
-				data['hum'] = float(data['hum'])
-				data['pm_10_3_hour'] = float(data['pm_10_3_hour'])
-				data['pm_10_24_hour'] = float(data['pm_10_24_hour'])
-				data['pm_2p5_1_hour'] = float(data['pm_2p5_1_hour'])
-				data['aqi_nowcast_val'] = float(data['aqi_nowcast_val'])
-				data['heat_index'] = float(data['heat_index'])
-				data['pm_2p5_nowcast'] = float(data['pm_2p5_nowcast'])
-				data['pm_2p5_24_hour'] = float(data['pm_2p5_24_hour'])
-				data['pm_1'] = float(data['pm_1'])
-				data['aqi_val'] = float(data['aqi_val'])
-				data['temp'] = float(data['temp'])
-				data['pm_2p5_3_hour'] = float(data['pm_2p5_3_hour'])
-				data['aqi_1_hour_val'] = float(data['aqi_1_hour_val'])
-				data['pm_10_nowcast'] = float(data['pm_10_nowcast'])
-				data['pm_10_1_hour'] = float(data['pm_10_1_hour'])
-				data['dew_point'] = float(data['dew_point'])
-				data['pm_10'] = float(data['pm_10'])
-				data['pm_2p5'] = float(data['pm_2p5'])
-				data['wet_bulb'] = float(data['wet_bulb'])
-	except Exception as e:
-		print(e)
+            fields = [
+                'hum', 'pm_10_3_hour', 'pm_10_24_hour', 'pm_2p5_1_hour',
+                'aqi_nowcast_val', 'heat_index', 'pm_2p5_nowcast',
+                'pm_2p5_24_hour', 'pm_1', 'aqi_val', 'temp',
+                'pm_2p5_3_hour', 'aqi_1_hour_val', 'pm_10_nowcast',
+                'pm_10_1_hour', 'dew_point', 'pm_10', 'pm_2p5', 'wet_bulb'
+            ]
 
-	return data
+            for field in fields:
+                if field in raw_data:
+                    try:
+                        data[field] = float(raw_data[field])
+                    except (ValueError, TypeError) as e:
+                        print(f"Impossibile convertire il campo {field}: {e}")
+
+            break
+
+    return data
