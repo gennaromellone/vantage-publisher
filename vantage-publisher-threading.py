@@ -174,10 +174,8 @@ while True:
                 last_airlink_time = current_time
             except Exception as e:
                 print(f"Errore nell'aggiornamento dati Airlink: {e}")
-
-# Se abbiamo dati Airlink validi, uniscili al pacchetto
-if last_airlink_data:
-    packet_data.update(last_airlink_data)
+        if last_airlink_data:
+            packet_data.update(last_airlink_data)
         
         save_data_to_csv(config_data, packet_data)
 
