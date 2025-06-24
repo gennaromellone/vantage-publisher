@@ -119,7 +119,7 @@ if airlink_response.status_code == 200:
 elif airlink_response.status_code == 404:
     print("Error: Instrument not found")
 else:
-    print(f"Errore: {response.status_code}")
+    print(f"Errore: {airlink_response.status_code}. {f"http://{config_data['mqttBroker']}:8088/get_airlink/{DEVICE_NAME}"}")
 
 # Creating MQTT connection
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
