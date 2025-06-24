@@ -111,7 +111,8 @@ with open('config.json', 'r') as config_file:
 os.makedirs(config_data['pathStorage'], exist_ok=True)
 
 # Read AirLink ID
-airlink_response = requests.get(f"http://{config_data['mqttBroker']}:8088/get_airlink/{DEVICE_NAME}")
+airlink_url = f"http://{config_data['mqttBroker']}:8088/get_airlink/{DEVICE_NAME}"
+airlink_response = requests.get(airlink_url)
 airlink_id = ""
 if airlink_response.status_code == 200:
     airlink_json = airlink_response.json()
@@ -119,7 +120,7 @@ if airlink_response.status_code == 200:
 elif airlink_response.status_code == 404:
     print("Error: Instrument not found")
 else:
-    print(f"Errore: {airlink_response.status_code}. {f"http://{config_data['mqttBroker']}:8088/get_airlink/{DEVICE_NAME}"}")
+    print(f"Errore: {airlink_response.status_code}. {airlink_url}")
 
 # Creating MQTT connection
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
