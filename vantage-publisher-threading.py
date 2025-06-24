@@ -136,6 +136,12 @@ usbUrl = f"tcp:127.0.0.1:{config_data['usbPort']}"
 
 mqttc.loop_start()
 
+# Handle airlink data
+last_airlink_data = None
+last_airlink_time = 0
+AIRLINK_INTERVAL = 300 
+
+
 # Send packets
 while True:
     usbData = [None]
@@ -154,13 +160,24 @@ while True:
         packet_data = usbData[0]
         if "Datetime" in packet_data:
             packet_data['DatetimeWS'] = packet_data['Datetime']
+            
         packet_data['Datetime'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         #packet_data['latitude'] = config_data['deviceLat']
         #packet_data['longitude'] = config_data['deviceLong']
         packet_data['place'] = config_data['devicePlace']
-        if airlink_id != "":
-            airlink = airlinkData(airlink_id)
-            packet_data.update(airlink) #Merge with airlink data
+
+        current_time = time.time()
+        # Update airlink data only each AIRLINK_INTERVAL sec.
+        if airlink_id != "" and (last_airlink_data is None or (current_time - last_airlink_time) > AIRLINK_INTERVAL):
+            try:
+                last_airlink_data = airlinkData(airlink_id)
+                last_airlink_time = current_time
+            except Exception as e:
+                print(f"Errore nell'aggiornamento dati Airlink: {e}")
+
+# Se abbiamo dati Airlink validi, uniscili al pacchetto
+if last_airlink_data:
+    packet_data.update(last_airlink_data)
         
         save_data_to_csv(config_data, packet_data)
 
